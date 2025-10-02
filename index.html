@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meme Generator Crypto Full</title>
+  <style>
+    body {
+      background: #0a0a0a;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    h1 { 
+      color: #ff3ec9; 
+      text-shadow: 0 0 10px #ff3ec9; 
+    }
+    canvas {
+      border: 2px solid #ff3ec9;
+      max-width: 100%;
+      margin: 15px 0;
+      cursor: move;
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    input, button, select {
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+    input, select {
+      background: #111;
+      color: #fff;
+      border: 1px solid #ff3ec9;
+    }
+    button {
+      background: linear-gradient(90deg,#ff3ec9,#9c27ff);
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover { filter: brightness(1.2); }
+  </style>
+</head>
+<body>
+  <h1>Crypto Meme Generator</h1>
+
+  <div class="controls">
+    <input type="file" id="imageUpload" accept="image/*">
+    <select id="templateSelect">
+      <option value="">-- Or Choose Template --</option>
+      <option value="doge">🐶 Doge</option>
+      <option value="bitcoin">₿ Bitcoin Rollercoaster</option>
+      <option value="vitalik">👨‍💻 Vitalik</option>
+    </select>
+    <input type="text" id="topText" placeholder="Top Text">
+    <input type="text" id="bottomText" placeholder="Bottom Text">
+    <input type="color" id="textColor" value="#ffffff">
+    <input type="color" id="strokeColor" value="#000000">
+    <button id="downloadBtn">Download Meme</button>
+  </div>
+
+  <canvas id="memeCanvas" width="500" height="500"></canvas>
+
+  <script>
+    const canvas = document.getElementById("memeCanvas");
+    const ctx = canvas.getContext("2d");
+
+    let uploadedImage = null;
+    let textItems = [
+      { text: "", x: 250, y: 60, dragging: false },
+      { text: "", x: 250, y: 450, dragging: false }
+    ];
+
+    // Template images (contoh bawaan, bisa tambah lagi)
+    const templates = {
+      doge: "https://i.ibb.co/7jFBLGd/doge-meme.jpg",
+      bitcoin: "https://i.ibb.co/f9LXZ8j/bitcoin-rollercoaster.png",
+      vitalik: "https://i.ibb.co/7y8BHLd/vitalik.jpg"
+    };
+
+    // Load image (upload)
+    document.getElementById("imageUpload").addEventListener("change", (e) => {
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        const img = new Image();
+        img.onload = function() {
+          uploadedImage = img;
+          resizeCanvas(img.width, img.height);
+          drawMeme();
+        };
+        img.src = event.target.result;
+      };
+      reader.readAsDataURL(e.target.files[0]);
+    });
+
+    // Load template
+    document.getElementById("templateSelect").addEventListener("change", (e) => {
+      const key = e.target.value;
+      if (key && templates[key]) {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.onload = function() {
+          uploadedImage = img;
+          resizeCanvas(img.width, img.height);
+          drawMeme();
+        };
+        img.src = templates[key];
+      }
+    });
+
+    // Resize canvas
+    function resizeCanvas(w, h) {
+      canvas.width = w;
+      canvas.height = h;
+    }
+
+    // Draw meme
+    function drawMeme() {
+      if (!uploadedImage) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(uploadedImage, 0, 0, canvas.width, canvas.height);
+
+      const textColor = document.getElementById("textColor").value;
+      const strokeColor = document.getElementById("strokeColor").value;
+      ctx.fillStyle = textColor;
+      ctx.strokeStyle = strokeColor;
+      ctx.textAlign = "center";
+      ctx.lineWidth = 6;
+
+      textItems.forEach((item) => {
+        if (!item.text) return;
+        const fontSize = Math.floor(canvas.width / 10);
+        ctx.font = `${fontSize}px Impact`;
+        ctx.strokeText(item.text.toUpperCase(), item.x, item.y);
+        ctx.fillText(item.text.toUpperCase(), item.x, item.y);
+      });
+    }
+
+    // Update text inputs
+    document.getElementById("topText").addEventListener("input", (e) => {
+      textItems[0].text = e.target.value;
+      drawMeme();
+    });
+    document.getElementById("bottomText").addEventListener("input", (e) => {
+      textItems[1].text = e.target.value;
+      drawMeme();
+    });
+    document.getElementById("textColor").addEventListener("input", drawMeme);
+    document.getElementById("strokeColor").addEventListener("input", drawMeme);
+
+    // Drag text
+    let dragIndex = null;
+    canvas.addEventListener("mousedown", (e) => {
+      const mouseX = e.offsetX;
+      const mouseY = e.offsetY;
+      textItems.forEach((item, i) => {
+        const dist = Math.hypot(mouseX - item.x, mouseY - item.y);
+        if (dist < 60) { // click radius
+          dragIndex = i;
+          item.dragging = true;
+        }
+      });
+    });
+    canvas.addEventListener("mousemove", (e) => {
+      if (dragIndex !== null && textItems[dragIndex].dragging) {
+        textItems[dragIndex].x = e.offsetX;
+        textItems[dragIndex].y = e.offsetY;
+        drawMeme();
+      }
+    });
+    canvas.addEventListener("mouseup", () => {
+      if (dragIndex !== null) textItems[dragIndex].dragging = false;
+      dragIndex = null;
+    });
+
+    // Download button
+    document.getElementById("downloadBtn").addEventListener("click", () => {
+      const link = document.createElement("a");
+      link.download = "crypto-meme.png";
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    });
+  </script>
+</body>
+</html>
