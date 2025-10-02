@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Meme Generator Crypto Full</title>
+  <title>Meme Generator Crypto Clean</title>
   <style>
     body {
       background: #0a0a0a;
@@ -31,13 +31,13 @@
       justify-content: center;
       margin-bottom: 20px;
     }
-    input, button, select {
+    input, button {
       padding: 10px;
       border: none;
       border-radius: 8px;
       font-size: 14px;
     }
-    input, select {
+    input {
       background: #111;
       color: #fff;
       border: 1px solid #ff3ec9;
@@ -57,16 +57,10 @@
 
   <div class="controls">
     <input type="file" id="imageUpload" accept="image/*">
-    <select id="templateSelect">
-      <option value="">-- Or Choose Template --</option>
-      <option value="doge">🐶 Doge</option>
-      <option value="bitcoin">₿ Bitcoin Rollercoaster</option>
-      <option value="vitalik">👨‍💻 Vitalik</option>
-    </select>
     <input type="text" id="topText" placeholder="Top Text">
     <input type="text" id="bottomText" placeholder="Bottom Text">
-    <input type="color" id="textColor" value="#ffffff">
-    <input type="color" id="strokeColor" value="#000000">
+    <input type="color" id="textColor" value="#ffffff" title="Text Color">
+    <input type="color" id="strokeColor" value="#000000" title="Outline Color">
     <button id="downloadBtn">Download Meme</button>
   </div>
 
@@ -82,14 +76,7 @@
       { text: "", x: 250, y: 450, dragging: false }
     ];
 
-    // Template images (contoh bawaan, bisa tambah lagi)
-    const templates = {
-      doge: "https://i.ibb.co/7jFBLGd/doge-meme.jpg",
-      bitcoin: "https://i.ibb.co/f9LXZ8j/bitcoin-rollercoaster.png",
-      vitalik: "https://i.ibb.co/7y8BHLd/vitalik.jpg"
-    };
-
-    // Load image (upload)
+    // Upload gambar
     document.getElementById("imageUpload").addEventListener("change", (e) => {
       const reader = new FileReader();
       reader.onload = function(event) {
@@ -102,21 +89,6 @@
         img.src = event.target.result;
       };
       reader.readAsDataURL(e.target.files[0]);
-    });
-
-    // Load template
-    document.getElementById("templateSelect").addEventListener("change", (e) => {
-      const key = e.target.value;
-      if (key && templates[key]) {
-        const img = new Image();
-        img.crossOrigin = "anonymous";
-        img.onload = function() {
-          uploadedImage = img;
-          resizeCanvas(img.width, img.height);
-          drawMeme();
-        };
-        img.src = templates[key];
-      }
     });
 
     // Resize canvas
@@ -147,7 +119,7 @@
       });
     }
 
-    // Update text inputs
+    // Update teks
     document.getElementById("topText").addEventListener("input", (e) => {
       textItems[0].text = e.target.value;
       drawMeme();
@@ -159,14 +131,14 @@
     document.getElementById("textColor").addEventListener("input", drawMeme);
     document.getElementById("strokeColor").addEventListener("input", drawMeme);
 
-    // Drag text
+    // Drag teks
     let dragIndex = null;
     canvas.addEventListener("mousedown", (e) => {
       const mouseX = e.offsetX;
       const mouseY = e.offsetY;
       textItems.forEach((item, i) => {
         const dist = Math.hypot(mouseX - item.x, mouseY - item.y);
-        if (dist < 60) { // click radius
+        if (dist < 60) {
           dragIndex = i;
           item.dragging = true;
         }
@@ -184,7 +156,7 @@
       dragIndex = null;
     });
 
-    // Download button
+    // Download
     document.getElementById("downloadBtn").addEventListener("click", () => {
       const link = document.createElement("a");
       link.download = "crypto-meme.png";
